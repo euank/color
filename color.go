@@ -163,10 +163,6 @@ func (c *Color) unsetWriter(w io.Writer) {
 		return
 	}
 
-	if NoColor {
-		return
-	}
-
 	fmt.Fprintf(w, "%s[%dm", escape, Reset)
 }
 
