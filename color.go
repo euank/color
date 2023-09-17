@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
@@ -15,8 +16,9 @@ import (
 var (
 	// NoColor defines if the output is colorized or not. It's dynamically set to
 	// false or true based on the stdout's file descriptor referring to a terminal
-	// or not. This is a global option and affects all colors. For more control
-	// over each color block use the methods DisableColor() individually.
+	// or not. This is a global option and affects all colors constructed after
+	// it is set. For control over each color use the methods [DisableColor] and
+	// [EnableColor] individually.
 	NoColor = os.Getenv("TERM") == "dumb" ||
 		(!isatty.IsTerminal(os.Stdout.Fd()) && !isatty.IsCygwinTerminal(os.Stdout.Fd()))
 
@@ -36,7 +38,7 @@ var (
 // Color defines a custom color object which is defined by SGR parameters.
 type Color struct {
 	params  []Attribute
-	noColor *bool
+	noColor atomic.Bool
 }
 
 // Attribute defines a single SGR Code
@@ -108,7 +110,11 @@ const (
 
 // New returns a newly created color object.
 func New(value ...Attribute) *Color {
-	c := &Color{params: make([]Attribute, 0)}
+	c := &Color{
+		params: make([]Attribute, 0),
+	}
+	// default for noColor
+	c.noColor.Store(NoColor)
 	c.Add(value...)
 	return c
 }
@@ -373,23 +379,17 @@ func (c *Color) unformat() string {
 // code and still being able to output. Can be used for flags like
 // "--no-color". To enable back use EnableColor() method.
 func (c *Color) DisableColor() {
-	c.noColor = boolPtr(true)
+	c.noColor.Store(true)
 }
 
 // EnableColor enables the color output. Use it in conjunction with
 // DisableColor(). Otherwise this method has no side effects.
 func (c *Color) EnableColor() {
-	c.noColor = boolPtr(false)
+	c.noColor.Store(false)
 }
 
 func (c *Color) isNoColorSet() bool {
-	// check first if we have user setted action
-	if c.noColor != nil {
-		return *c.noColor
-	}
-
-	// if not return the global option, which is disabled by default
-	return NoColor
+	return c.noColor.Load()
 }
 
 // Equals returns a boolean value indicating whether two colors are equal.
