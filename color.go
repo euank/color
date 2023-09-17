@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -117,6 +118,15 @@ func New(value ...Attribute) *Color {
 	c.noColor.Store(NoColor)
 	c.Add(value...)
 	return c
+}
+
+// Clone returns a copy of this color which can be modified independently
+func (c *Color) Clone() *Color {
+	c2 := &Color{
+		params: slices.Clone(c.params),
+	}
+	c2.noColor.Store(c.noColor.Load())
+	return c2
 }
 
 // Set sets the given parameters immediately. It will change the color of
