@@ -1,11 +1,12 @@
 module github.com/euank/color
 
-go 1.18
+go 1.23.0
+
+toolchain go1.24.5
 
 require (
-	github.com/mattn/go-colorable v0.0.9
-	github.com/mattn/go-isatty v0.0.3
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
+	github.com/mattn/go-colorable v0.1.14
+	github.com/mattn/go-isatty v0.0.20
 )
 
-require golang.org/x/sys v0.12.0 // indirect
+require golang.org/x/sys v0.34.0 // indirect
